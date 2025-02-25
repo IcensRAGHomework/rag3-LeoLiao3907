@@ -13,7 +13,7 @@ gpt_emb_config = get_model_configuration(gpt_emb_version)
 dbpath = "./"
 csv_file = 'COA_OpenData.csv'
 
-def generate_hw01(clear_if_exist = False):
+def generate_hw01():
     # Create embedding function
     openai_ef = embedding_functions.OpenAIEmbeddingFunction(
         api_key = gpt_emb_config['api_key'],
@@ -26,10 +26,6 @@ def generate_hw01(clear_if_exist = False):
     # Create chromadb
     chroma_client = chromadb.PersistentClient(path = dbpath)
 
-    # Clear old collection if need
-    if clear_if_exist == True:
-        chroma_client.delete_collection(name = "TRAVEL")
-
     # Create new collection to store or retrieve data
     collection = chroma_client.get_or_create_collection(
         name = "TRAVEL",
@@ -37,11 +33,11 @@ def generate_hw01(clear_if_exist = False):
         embedding_function = openai_ef
     )
 
-    if collection.count == 0:
+    if collection.count() == 0:
         # Read data from csv file
         data = pandas.read_csv(csv_file)
-        for row in data.iterrows():
-            id = row["ID"]
+        for index, row in data.iterrows():
+            id = str(row["ID"])
             metadata = {
                 "file_name": csv_file,
                 "name": row["Name"],
